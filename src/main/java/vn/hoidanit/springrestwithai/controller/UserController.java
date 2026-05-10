@@ -12,8 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import vn.hoidanit.springrestwithai.model.User;
 import vn.hoidanit.springrestwithai.service.UserService;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
+// @RequestMapping("/v1/api")
+
 public class UserController {
 
     private final UserService userService;
