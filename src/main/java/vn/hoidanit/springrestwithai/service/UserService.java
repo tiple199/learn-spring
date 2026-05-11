@@ -21,6 +21,7 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
+        // findById trả về Optional<User>, dùng orElse(null) để giữ nguyên kiểu trả về User
         return this.userRepository.findById(id).orElse(null);
     }
 
@@ -29,10 +30,15 @@ public class UserService {
     }
 
     public User updateUser(User user) {
+        // JPA save() tự động UPDATE nếu entity đã có id tồn tại trong database
         return this.userRepository.save(user);
     }
 
     public void deleteUser(Long id) {
         this.userRepository.deleteById(id);
+    }
+
+    public boolean existsByEmail(String email) {
+        return this.userRepository.existsByEmail(email);
     }
 }
