@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import vn.hoidanit.springrestwithai.exception.DuplicateResourceException;
+import vn.hoidanit.springrestwithai.exception.ResourceNotFoundException;
 import vn.hoidanit.springrestwithai.model.User;
 import vn.hoidanit.springrestwithai.repository.UserRepository;
 
@@ -21,24 +23,25 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        // findById trả về Optional<User>, dùng orElse(null) để giữ nguyên kiểu trả về User
-        return this.userRepository.findById(id).orElse(null);
+        return this.userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
     }
 
     public User createUser(User user) {
+        if (this.userRepository.existsByEmail(user.getEmail())) {
+            throw new DuplicateResourceException("Người dùng", "email", user.getEmail());
+        }
         return this.userRepository.save(user);
     }
 
-    public User updateUser(User user) {
-        // JPA save() tự động UPDATE nếu entity đã có id tồn tại trong database
+    public User updateUser(Long id, User user) {
+        getUserById(id); // throws ResourceNotFoundException nếu không tồn tại
+        user.setId(id);
         return this.userRepository.save(user);
     }
 
     public void deleteUser(Long id) {
+        getUserById(id); // throws ResourceNotFoundException nếu không tồn tại
         this.userRepository.deleteById(id);
-    }
-
-    public boolean existsByEmail(String email) {
-        return this.userRepository.existsByEmail(email);
     }
 }
