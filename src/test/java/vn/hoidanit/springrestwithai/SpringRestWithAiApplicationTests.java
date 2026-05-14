@@ -1,10 +1,10 @@
-package vn.hoidanit.hoidanit_spring_rest_with_ai;
+package vn.hoidanit.springrestwithai;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class HoidanitSpringRestWithAiApplicationTests {
+class SpringRestWithAiApplicationTests {
 
 	@Test
 	void contextLoads() {

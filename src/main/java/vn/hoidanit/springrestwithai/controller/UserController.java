@@ -26,6 +26,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/")
+    public ResponseEntity<String> getHomePage() {
+        return ResponseEntity.ok("Welcome to the Spring REST API with AI!");
+    }
+
     // GET /users - lấy tất cả users
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
