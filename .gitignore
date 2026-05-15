@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+.claude/
+.docs/
+AGENTS.md
+CLAUDE.md
+.agents/
