@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import vn.hoidanit.springrestwithai.helper.ApiResponse;
+import vn.hoidanit.springrestwithai.dto.ApiResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -80,23 +80,21 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ApiResponse<Object>> handleValidationException(
-            MethodArgumentNotValidException ex) {
+                        MethodArgumentNotValidException ex) {
 
-            List<String> errors = ex.getBindingResult()
-                  .getFieldErrors()
-                  .stream()
-                  .map(this::formatFieldError)
-                  .collect(Collectors.toList());
+                List<String> errors = ex.getBindingResult()
+                                .getFieldErrors()
+                                .stream()
+                                .map(this::formatFieldError)
+                                .collect(Collectors.toList());
 
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                  ApiResponse.badRequest("Dữ liệu không hợp lệ", errors)
-            );
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                                ApiResponse.badRequest("Dữ liệu không hợp lệ", errors));
         }
 
         private String formatFieldError(FieldError fieldError) {
-            return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                return fieldError.getField() + ": " + fieldError.getDefaultMessage();
         }
-
 
         // ========== CATCH-ALL ==========
 
