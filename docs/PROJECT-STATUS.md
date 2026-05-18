@@ -24,6 +24,9 @@
 - ✅ **[2026-03-01]** Permission unit tests — 11 tests, all passing
 - ✅ **[2026-03-01]** Permission integration tests — 11 tests (requires MySQL)
 - ✅ **[2026-03-01]** Permission CONTEXT.md
+- ✅ **[2026-03-01]** Company CRUD — entity, repository, DTOs (records), service, controller
+- ✅ **[2026-03-01]** Company unit tests — 11 tests, all passing
+- ✅ **[2026-03-01]** Company integration tests — 13 tests (requires MySQL)
 
 ## In Progress
 _Nothing._
@@ -42,9 +45,8 @@ _Nothing._
 - ⚠️ User CRUD (`/users`) currently returns raw entity (no DTOs). Needs proper refactor in Phase 3.
 
 ## Next Tasks
-1. **[P1]** Company CRUD + unit test + integration test + CONTEXT.md
-2. **[P2]** Role CRUD + ManyToMany Permission + test + CONTEXT.md
-3. **[P3]** Refactor User entity — add ManyToOne Company + ManyToMany Role
+1. **[P1]** Role CRUD + ManyToMany Permission + test + CONTEXT.md
+2. **[P2]** Refactor User entity — add ManyToOne Company + ManyToMany Role
 
 ## Milestones
 
@@ -57,7 +59,7 @@ _Nothing._
 
 ### Phase 1 — Independent Entities
 - [x] Permission CRUD + unit test + integration test + CONTEXT.md
-- [ ] Company CRUD + unit test + integration test + CONTEXT.md
+- [x] Company CRUD + unit test + integration test
 
 ### Phase 2 — Role (depends on Permission)
 - [ ] Role CRUD + ManyToMany Permission + test + CONTEXT.md
