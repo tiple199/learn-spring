@@ -14,10 +14,11 @@ public class Company {
     @Column(nullable = false,unique = true)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
-
+    @Column(length = 500)
     private String address;
-
+    @Column(length = 500)
     private String logo;
 
     private Instant CreateAt;

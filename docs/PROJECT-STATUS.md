@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-03-01 | By: @hoidanit | Session: #1
+> Last updated: 2026-03-02 | By: @hoidanit | Session: #2
 >
 > AI: update this file at the end of every session when asked.
 > Follow this exact format. Keep it concise — under 80 lines.
@@ -27,6 +27,10 @@
 - ✅ **[2026-03-01]** Company CRUD — entity, repository, DTOs (records), service, controller
 - ✅ **[2026-03-01]** Company unit tests — 11 tests, all passing
 - ✅ **[2026-03-01]** Company integration tests — 13 tests (requires MySQL)
+- ✅ **[2026-03-02]** Role CRUD — entity (ManyToMany Permission), repository, DTOs (records), service, controller
+- ✅ **[2026-03-02]** Role unit tests — 14 tests
+- ✅ **[2026-03-02]** Role integration tests — 13 tests (requires MySQL)
+- ✅ **[2026-03-02]** Role CONTEXT.md
 
 ## In Progress
 _Nothing._
@@ -45,8 +49,7 @@ _Nothing._
 - ⚠️ User CRUD (`/users`) currently returns raw entity (no DTOs). Needs proper refactor in Phase 3.
 
 ## Next Tasks
-1. **[P1]** Role CRUD + ManyToMany Permission + test + CONTEXT.md
-2. **[P2]** Refactor User entity — add ManyToOne Company + ManyToMany Role
+1. **[P1]** Refactor User entity — add ManyToOne Company + ManyToMany Role + test + CONTEXT.md
 
 ## Milestones
 
@@ -62,7 +65,7 @@ _Nothing._
 - [x] Company CRUD + unit test + integration test
 
 ### Phase 2 — Role (depends on Permission)
-- [ ] Role CRUD + ManyToMany Permission + test + CONTEXT.md
+- [x] Role CRUD + ManyToMany Permission + test + CONTEXT.md
 
 ### Phase 3 — User (depends on Role + Company)
 - [ ] User CRUD + ManyToOne Company + ManyToMany Role + test + CONTEXT.md
