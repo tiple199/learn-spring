@@ -25,6 +25,13 @@ public class GlobalExceptionHandler {
 
         // ========== CUSTOM EXCEPTIONS ==========
 
+        @ExceptionHandler(FileUploadException.class)
+        public ResponseEntity<ApiResponse<Void>> handleFileUpload(FileUploadException ex) {
+                log.warn("FileUploadException: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.badRequest(ex.getMessage()));
+        }
+
         @ExceptionHandler(ResourceNotFoundException.class)
         public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex) {
                 log.warn("ResourceNotFoundException: {}", ex.getMessage());

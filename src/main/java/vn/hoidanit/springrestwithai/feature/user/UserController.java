@@ -1,21 +1,19 @@
 package vn.hoidanit.springrestwithai.feature.user;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import vn.hoidanit.springrestwithai.dto.ApiResponse;
+import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
+import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
+import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final UserService userService;
@@ -24,40 +22,41 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/")
-    public ResponseEntity<String> getHomePage() {
-        return ResponseEntity.ok("Hello World");
-    }
 
-    @GetMapping("/users")
-    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
-        List<User> users = this.userService.getAllUsers();
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<UserResponse> users = this.userService.getAll(page, size);
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách người dùng thành công", users));
     }
 
-    @GetMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable Long id) {
-        User user = this.userService.getUserById(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable Long id) {
+        UserResponse user = this.userService.getById(id);
         return ResponseEntity.ok(ApiResponse.success("Lấy thông tin người dùng thành công", user));
     }
 
-    @PostMapping("/users")
-    public ResponseEntity<ApiResponse<User>> createUser(@Valid @RequestBody User user) {
-        User createdUser = this.userService.createUser(user);
-        URI location = URI.create("/users/" + createdUser.getId());
+    @PostMapping
+    public ResponseEntity<ApiResponse<UserResponse>> create(
+            @Valid @RequestBody CreateUserRequest request) {
+        UserResponse response = userService.create(request);
+        URI location = URI.create("/api/v1/users/" + response.id());
         return ResponseEntity.created(location)
-                .body(ApiResponse.created("Tạo người dùng mới thành công", createdUser));
+                .body(ApiResponse.created("Tạo người dùng thành công", response));
     }
 
-    @PutMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long id, @RequestBody User user) {
-        User updatedUser = this.userService.updateUser(id, user);
+    @PutMapping
+    public ResponseEntity<ApiResponse<UserResponse>> update(@Valid @RequestBody UpdateUserRequest request) {
+        UserResponse updatedUser = this.userService.update(request);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin người dùng thành công", updatedUser));
     }
+    
 
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
-        this.userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        this.userService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success("Xóa người dùng thành công", null));
     }
 }
