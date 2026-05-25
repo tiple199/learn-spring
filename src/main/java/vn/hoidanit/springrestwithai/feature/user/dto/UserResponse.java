@@ -1,6 +1,7 @@
 package vn.hoidanit.springrestwithai.feature.user.dto;
 
 import vn.hoidanit.springrestwithai.feature.user.User;
+import vn.hoidanit.springrestwithai.util.constant.GenderEnum;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,7 +12,7 @@ public record UserResponse(
         String email,
         Integer age,
         String address,
-        User.GenderEnum gender,
+        GenderEnum gender,
         String avatar,
         CompanyInfo company,
         List<RoleInfo> roles,

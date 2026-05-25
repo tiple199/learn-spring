@@ -22,6 +22,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import vn.hoidanit.springrestwithai.feature.company.Company;
 import vn.hoidanit.springrestwithai.feature.role.Role;
+import vn.hoidanit.springrestwithai.util.constant.GenderEnum;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -30,10 +31,6 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 public class User {
-
-    public enum GenderEnum {
-        MALE, FEMALE, OTHER
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

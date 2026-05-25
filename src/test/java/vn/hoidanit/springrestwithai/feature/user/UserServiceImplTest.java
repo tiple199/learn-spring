@@ -20,6 +20,7 @@ import vn.hoidanit.springrestwithai.feature.role.RoleRepository;
 import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
+import vn.hoidanit.springrestwithai.util.constant.GenderEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +60,7 @@ class UserServiceImplTest {
     void create_validRequestNoCompanyNoRoles_returnsUserResponse() {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "a@example.com", "password123",
-                25, "Hanoi", User.GenderEnum.MALE, null, null);
+                25, "Hanoi", GenderEnum.MALE, null, null);
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(passwordEncoder.encode(request.password())).thenReturn("encoded");
@@ -86,7 +87,7 @@ class UserServiceImplTest {
 
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van B", "b@example.com", "password123",
-                30, "HCM", User.GenderEnum.FEMALE, 10L, List.of(20L));
+                30, "HCM", GenderEnum.FEMALE, 10L, List.of(20L));
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(companyRepository.findById(10L)).thenReturn(Optional.of(company));
@@ -205,7 +206,7 @@ class UserServiceImplTest {
         User existing = buildUser(1L, "Old Name", "old@example.com");
         UpdateUserRequest request = new UpdateUserRequest(
                 1L, "New Name", "new@example.com", 30, "HCM",
-                User.GenderEnum.MALE, null, null);
+                GenderEnum.MALE, null, null);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.existsByEmailAndIdNot("new@example.com", 1L)).thenReturn(false);

@@ -17,6 +17,7 @@ import vn.hoidanit.springrestwithai.feature.role.Role;
 import vn.hoidanit.springrestwithai.feature.role.RoleRepository;
 import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
+import vn.hoidanit.springrestwithai.util.constant.GenderEnum;
 
 import java.util.List;
 
@@ -65,7 +66,7 @@ class UserControllerTest {
     void createUser_validRequest_returns201() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "a@example.com", "password123",
-                25, "Hanoi", User.GenderEnum.MALE, null, null);
+                25, "Hanoi", GenderEnum.MALE, null, null);
 
         mockMvc.perform(post("/api/v1/users")
                         .with(jwt())
@@ -86,7 +87,7 @@ class UserControllerTest {
 
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van B", "b@example.com", "password123",
-                30, "HCM", User.GenderEnum.FEMALE,
+                30, "HCM", GenderEnum.FEMALE,
                 company.getId(), List.of(role.getId()));
 
         mockMvc.perform(post("/api/v1/users")
@@ -212,7 +213,7 @@ class UserControllerTest {
 
         UpdateUserRequest request = new UpdateUserRequest(
                 saved.getId(), "New Name", "new@test.com",
-                30, "HCM", User.GenderEnum.FEMALE, null, null);
+                30, "HCM", GenderEnum.FEMALE, null, null);
 
         mockMvc.perform(put("/api/v1/users")
                         .with(jwt())

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import vn.hoidanit.springrestwithai.feature.user.User;
+import vn.hoidanit.springrestwithai.util.constant.GenderEnum;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public record CreateUserRequest(
         @Size(max = 255, message = "Địa chỉ không được quá 255 ký tự")
         String address,
 
-        User.GenderEnum gender,
+        GenderEnum gender,
 
         Long companyId,
 
