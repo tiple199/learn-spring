@@ -10,10 +10,14 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
 jwt:
   secret: hoidanitjwtsecretkeyHS256hoidanitjwtsecretkeyHS256hoidanitjwt
   expiration: 86400000
+  refresh-expiration: 604800000
 
 app:
   upload:

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import org.springframework.security.authentication.BadCredentialsException;
+
 import vn.hoidanit.springrestwithai.dto.ApiResponse;
 
 @RestControllerAdvice
@@ -24,6 +26,20 @@ public class GlobalExceptionHandler {
         private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
         // ========== CUSTOM EXCEPTIONS ==========
+
+        @ExceptionHandler(InvalidTokenException.class)
+        public ResponseEntity<ApiResponse<Void>> handleInvalidToken(InvalidTokenException ex) {
+                log.warn("InvalidTokenException: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                .body(ApiResponse.unauthorized(ex.getMessage()));
+        }
+
+        @ExceptionHandler(BadCredentialsException.class)
+        public ResponseEntity<ApiResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
+                log.warn("BadCredentialsException: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                .body(ApiResponse.unauthorized("Email hoặc mật khẩu không đúng"));
+        }
 
         @ExceptionHandler(FileUploadException.class)
         public ResponseEntity<ApiResponse<Void>> handleFileUpload(FileUploadException ex) {

@@ -1,7 +1,6 @@
 package vn.hoidanit.springrestwithai.feature.auth.dto;
 
-public record LoginResponse(
-        String accessToken,
+public record RefreshRequest(
         String refreshToken
 ) {
 }

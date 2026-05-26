@@ -15,16 +15,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-     private static final String[] WHITELIST = {
-      "/v3/api-docs/**",
-      "/swagger-ui/**",
-      "/swagger-ui.html",
-        "/auth/**",
-        "/",
-        // "/api/v1/**",
-        "/uploads/**"
+    private static final String[] WHITELIST = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
+            "/uploads/**"
     };
-
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
