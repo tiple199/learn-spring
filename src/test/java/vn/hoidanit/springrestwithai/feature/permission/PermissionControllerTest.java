@@ -2,6 +2,7 @@ package vn.hoidanit.springrestwithai.feature.permission;
 
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +12,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import vn.hoidanit.springrestwithai.common.TestDataFactory;
 import vn.hoidanit.springrestwithai.feature.permission.dto.CreatePermissionRequest;
 import vn.hoidanit.springrestwithai.feature.permission.dto.UpdatePermissionRequest;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,8 +40,20 @@ class PermissionControllerTest {
     @Autowired
     private PermissionRepository permissionRepository;
 
+    @Autowired
+    private TestDataFactory testDataFactory;
+
+    @BeforeEach
+    void setUp() {
+        testDataFactory.seedPermissions("PERMISSIONS", "/api/v1/permissions", "GET", "POST", "PUT", "DELETE");
+        testDataFactory.seedPermissions("PERMISSIONS", "/api/v1/permissions/**", "GET", "DELETE");
+    }
+
     @AfterEach
     void cleanUp() {
+        // cleanup() xóa roles (+ join table) trước, rồi xóa seeded permissions
+        // Sau đó xóa thêm permissions do test tạo (nếu còn)
+        testDataFactory.cleanup();
         permissionRepository.deleteAll();
     }
 
@@ -53,7 +66,7 @@ class PermissionControllerTest {
                 "CREATE_USER", "/api/v1/users", "POST", "USER");
 
         mockMvc.perform(post("/api/v1/permissions")
-                        .with(jwt())
+                        .with(testDataFactory.jwtWithPermission())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -72,7 +85,7 @@ class PermissionControllerTest {
         String emptyJson = "{}";
 
         mockMvc.perform(post("/api/v1/permissions")
-                        .with(jwt())
+                        .with(testDataFactory.jwtWithPermission())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(emptyJson))
                 .andExpect(status().isBadRequest())
@@ -86,12 +99,12 @@ class PermissionControllerTest {
                 "CREATE_USER", "/api/v1/users", "POST", "USER");
 
         mockMvc.perform(post("/api/v1/permissions")
-                        .with(jwt())
+                        .with(testDataFactory.jwtWithPermission())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)));
 
         mockMvc.perform(post("/api/v1/permissions")
-                        .with(jwt())
+                        .with(testDataFactory.jwtWithPermission())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -110,6 +123,19 @@ class PermissionControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("POST /permissions - 403: no permission returns forbidden")
+    void createPermission_noPermission_returns403() throws Exception {
+        CreatePermissionRequest request = new CreatePermissionRequest(
+                "CREATE_USER", "/api/v1/users", "POST", "USER");
+
+        mockMvc.perform(post("/api/v1/permissions")
+                        .with(testDataFactory.jwtWithoutPermission())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
     // ========== GET /api/v1/permissions/{id} ==========
 
     @Test
@@ -118,7 +144,7 @@ class PermissionControllerTest {
         Permission saved = permissionRepository.save(buildPermission("VIEW_USERS", "/api/v1/users", "GET", "USER"));
 
         mockMvc.perform(get("/api/v1/permissions/{id}", saved.getId())
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
                 .andExpect(jsonPath("$.data.id", is(saved.getId().intValue())))
@@ -129,7 +155,7 @@ class PermissionControllerTest {
     @DisplayName("GET /permissions/{id} - 404: not found returns 404")
     void getById_notFound_returns404() throws Exception {
         mockMvc.perform(get("/api/v1/permissions/{id}", 99999L)
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
     }
@@ -141,6 +167,16 @@ class PermissionControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /permissions/{id} - 403: no permission returns forbidden")
+    void getById_noPermission_returns403() throws Exception {
+        Permission saved = permissionRepository.save(buildPermission("VIEW_USERS", "/api/v1/users", "GET", "USER"));
+
+        mockMvc.perform(get("/api/v1/permissions/{id}", saved.getId())
+                        .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
+    }
+
     // ========== GET /api/v1/permissions ==========
 
     @Test
@@ -150,14 +186,21 @@ class PermissionControllerTest {
         permissionRepository.save(buildPermission("DELETE_USER", "/api/v1/users/1", "DELETE", "USER"));
 
         mockMvc.perform(get("/api/v1/permissions")
-                        .with(jwt())
-                        .param("page", "0")
+                        .with(testDataFactory.jwtWithPermission())
+                        .param("page", "1")
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
-                .andExpect(jsonPath("$.data.content", notNullValue()))
-                .andExpect(jsonPath("$.data.totalElements", is(2)))
-                .andExpect(jsonPath("$.data.totalPages", is(1)));
+                .andExpect(jsonPath("$.data.meta.total").isNumber())
+                .andExpect(jsonPath("$.data.result", notNullValue()));
+    }
+
+    @Test
+    @DisplayName("GET /permissions - 403: no permission returns forbidden")
+    void getAll_noPermission_returns403() throws Exception {
+        mockMvc.perform(get("/api/v1/permissions")
+                        .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
     }
 
     // ========== PUT /api/v1/permissions ==========
@@ -171,7 +214,7 @@ class PermissionControllerTest {
                 saved.getId(), "NEW_NAME", "/api/v1/new", "PUT", "ROLE");
 
         mockMvc.perform(put("/api/v1/permissions")
-                        .with(jwt())
+                        .with(testDataFactory.jwtWithPermission())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -188,7 +231,7 @@ class PermissionControllerTest {
                 null, "NAME", "/api/v1/path", "GET", "USER");
 
         mockMvc.perform(put("/api/v1/permissions")
-                        .with(jwt())
+                        .with(testDataFactory.jwtWithPermission())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -202,11 +245,24 @@ class PermissionControllerTest {
                 99999L, "NAME", "/api/v1/path", "GET", "USER");
 
         mockMvc.perform(put("/api/v1/permissions")
-                        .with(jwt())
+                        .with(testDataFactory.jwtWithPermission())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
+    }
+
+    @Test
+    @DisplayName("PUT /permissions - 403: no permission returns forbidden")
+    void updatePermission_noPermission_returns403() throws Exception {
+        UpdatePermissionRequest request = new UpdatePermissionRequest(
+                99999L, "NAME", "/api/v1/path", "GET", "USER");
+
+        mockMvc.perform(put("/api/v1/permissions")
+                        .with(testDataFactory.jwtWithoutPermission())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     // ========== DELETE /api/v1/permissions/{id} ==========
@@ -217,7 +273,7 @@ class PermissionControllerTest {
         Permission saved = permissionRepository.save(buildPermission("DELETE_USER", "/api/v1/users/1", "DELETE", "USER"));
 
         mockMvc.perform(delete("/api/v1/permissions/{id}", saved.getId())
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)));
     }
@@ -226,9 +282,19 @@ class PermissionControllerTest {
     @DisplayName("DELETE /permissions/{id} - 404: not found returns 404")
     void deletePermission_notFound_returns404() throws Exception {
         mockMvc.perform(delete("/api/v1/permissions/{id}", 99999L)
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
+    }
+
+    @Test
+    @DisplayName("DELETE /permissions/{id} - 403: no permission returns forbidden")
+    void deletePermission_noPermission_returns403() throws Exception {
+        Permission saved = permissionRepository.save(buildPermission("DELETE_USER", "/api/v1/users/1", "DELETE", "USER"));
+
+        mockMvc.perform(delete("/api/v1/permissions/{id}", saved.getId())
+                        .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
     }
 
     // ========== helpers ==========

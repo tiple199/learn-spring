@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import vn.hoidanit.springrestwithai.common.TestDataFactory;
 import vn.hoidanit.springrestwithai.feature.auth.dto.LoginRequest;
 import vn.hoidanit.springrestwithai.feature.auth.dto.RegisterRequest;
 import vn.hoidanit.springrestwithai.feature.user.User;
@@ -50,11 +51,18 @@ class AuthControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private TestDataFactory testDataFactory;
+
     private static final String SEED_EMAIL = "testuser@example.com";
     private static final String SEED_PASSWORD = "password123";
 
     @BeforeEach
     void setUp() {
+        // Seed RBAC permissions cho /me và /logout (không nằm trong whitelist)
+        testDataFactory.seedPermissions("AUTH", "/api/v1/auth/me", "GET");
+        testDataFactory.seedPermissions("AUTH", "/api/v1/auth/logout", "POST");
+
         User user = new User();
         user.setEmail(SEED_EMAIL);
         user.setName("Test User");
@@ -69,6 +77,7 @@ class AuthControllerTest {
     void cleanUp() {
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
+        testDataFactory.cleanup();
     }
 
     // ========== POST /api/v1/auth/register ==========
@@ -205,7 +214,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("POST /auth/logout - 200: clears cookie")
     void logout_withValidToken_returns200() throws Exception {
-        // First login
+        // First login to get a refresh token cookie
         LoginRequest loginRequest = new LoginRequest(SEED_EMAIL, SEED_PASSWORD);
         MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -215,11 +224,11 @@ class AuthControllerTest {
 
         String setCookie = loginResult.getResponse().getHeader("Set-Cookie");
         String refreshToken = extractCookieValue(setCookie, "refresh_token");
-        String accessToken = extractAccessToken(loginResult);
 
-        // Logout with both access token and refresh cookie
+        // Logout dùng mock JWT (có permission) + refresh cookie
+        // Real JWT từ login không có ROLE_TEST_ROLE nên sẽ bị 403
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .header("Authorization", "Bearer " + accessToken)
+                        .with(testDataFactory.jwtWithPermission(SEED_EMAIL))
                         .cookie(new Cookie("refresh_token", refreshToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
@@ -233,9 +242,17 @@ class AuthControllerTest {
     @DisplayName("POST /auth/logout - 200: graceful without cookie")
     void logout_withoutCookie_returns200() throws Exception {
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)));
+    }
+
+    @Test
+    @DisplayName("POST /auth/logout - 403: no permission returns forbidden")
+    void logout_noPermission_returns403() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
     }
 
     // ========== GET /api/v1/auth/me ==========
@@ -244,7 +261,7 @@ class AuthControllerTest {
     @DisplayName("GET /auth/me - 200: returns user data with JWT")
     void getMe_withValidJwt_returns200() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me")
-                        .with(jwt().jwt(builder -> builder.subject(SEED_EMAIL))))
+                        .with(testDataFactory.jwtWithPermission(SEED_EMAIL)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
                 .andExpect(jsonPath("$.data.email", is(SEED_EMAIL)))
@@ -256,6 +273,14 @@ class AuthControllerTest {
     void getMe_withoutToken_returns401() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /auth/me - 403: no permission returns forbidden")
+    void getMe_noPermission_returns403() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me")
+                        .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
     }
 
     // ========== helpers ==========

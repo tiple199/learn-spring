@@ -10,31 +10,19 @@ import vn.hoidanit.springrestwithai.util.constant.GenderEnum;
 import java.util.List;
 
 public record CreateUserRequest(
-    @NotBlank(message = "Tên không được để trống")
-        @Size(min = 2, max = 100, message = "Tên phải từ 2 đến 100 ký tự")
-        String name,
+        @NotBlank(message = "Tên không được để trống") @Size(min = 2, max = 100, message = "Tên phải từ 2 đến 100 ký tự") String name,
 
-        @NotBlank(message = "Email không được để trống")
-        @Email(message = "Email không đúng định dạng")
-        String email,
+        @NotBlank(message = "Email không được để trống") @Email(message = "Email không đúng định dạng") String email,
 
-        @NotBlank(message = "Mật khẩu không được để trống")
-        @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
-        String password,
+        @NotBlank(message = "Mật khẩu không được để trống") @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự") String password,
 
-        @Min(value = 1, message = "Tuổi phải lớn hơn 0")
-        @Max(value = 150, message = "Tuổi không hợp lệ")
-        Integer age,
+        @Min(value = 1, message = "Tuổi phải lớn hơn 0") @Max(value = 150, message = "Tuổi không hợp lệ") Integer age,
 
-        @Size(max = 255, message = "Địa chỉ không được quá 255 ký tự")
-        String address,
+        @Size(max = 255, message = "Địa chỉ không được quá 255 ký tự") String address,
 
         GenderEnum gender,
 
         Long companyId,
 
-        List<Long> roleIds
-
-) {
-    
+        List<Long> roleIds) {
 }

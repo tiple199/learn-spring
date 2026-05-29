@@ -1,10 +1,10 @@
 package vn.hoidanit.springrestwithai.feature.role;
 
-import org.springframework.data.domain.Page;
-
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.feature.role.dto.CreateRoleRequest;
 import vn.hoidanit.springrestwithai.feature.role.dto.RoleResponse;
 import vn.hoidanit.springrestwithai.feature.role.dto.UpdateRoleRequest;
+import org.springframework.data.domain.Pageable;
 
 public interface RoleService {
 
@@ -14,8 +14,7 @@ public interface RoleService {
 
     RoleResponse getById(Long id);
 
-    Page<RoleResponse> getAll(int page, int size);
+    ResultPaginationDTO getAll(Pageable pageable);
 
     void delete(Long id);
-    
-} 
+}

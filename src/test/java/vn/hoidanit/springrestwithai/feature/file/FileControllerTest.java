@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,7 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +25,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import vn.hoidanit.springrestwithai.common.TestDataFactory;
 import vn.hoidanit.springrestwithai.config.FileUploadProperties;
 
 @SpringBootTest
@@ -39,8 +39,18 @@ class FileControllerTest {
     @Autowired
     private FileUploadProperties uploadProperties;
 
+    @Autowired
+    private TestDataFactory testDataFactory;
+
+    @BeforeEach
+    void setUp() {
+        testDataFactory.seedPermissions("FILES", "/api/v1/files", "POST");
+    }
+
     @AfterEach
     void cleanUp() throws IOException {
+        testDataFactory.cleanup();
+
         Path uploadDir = Path.of(uploadProperties.getBaseDir());
         if (Files.exists(uploadDir)) {
             Files.walk(uploadDir)
@@ -65,7 +75,7 @@ class FileControllerTest {
         mockMvc.perform(multipart("/api/v1/files")
                         .file(file)
                         .param("folder", "avatars")
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.statusCode", is(201)))
@@ -87,7 +97,7 @@ class FileControllerTest {
         mockMvc.perform(multipart("/api/v1/files")
                         .file(file)
                         .param("folder", "logos")
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.statusCode", is(201)))
                 .andExpect(jsonPath("$.data.folder", is("logos")));
@@ -102,7 +112,7 @@ class FileControllerTest {
         mockMvc.perform(multipart("/api/v1/files")
                         .file(file)
                         .param("folder", "avatars")
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode", is(400)))
                 .andExpect(jsonPath("$.message", notNullValue()));
@@ -117,7 +127,7 @@ class FileControllerTest {
         mockMvc.perform(multipart("/api/v1/files")
                         .file(file)
                         .param("folder", "avatars")
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode", is(400)));
     }
@@ -131,7 +141,7 @@ class FileControllerTest {
         mockMvc.perform(multipart("/api/v1/files")
                         .file(file)
                         .param("folder", "documents")
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode", is(400)));
     }
@@ -145,14 +155,13 @@ class FileControllerTest {
         mockMvc.perform(multipart("/api/v1/files")
                         .file(file)
                         .param("folder", "avatars")
-                        .with(jwt()))
+                        .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.statusCode", is(201)))
                 .andExpect(jsonPath("$.data.fileName", endsWith("_bad_file_.jpg")));
     }
 
     @Test
-    @Disabled("TODO Phase 4: enable once /api/v1/** is removed from SecurityConfig WHITELIST")
     @DisplayName("POST /files - 401: missing JWT token returns unauthorized")
     void uploadFile_noToken_returns401() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
@@ -162,5 +171,18 @@ class FileControllerTest {
                         .file(file)
                         .param("folder", "avatars"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST /files - 403: no permission returns forbidden")
+    void uploadFile_noPermission_returns403() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "avatar.jpg", "image/jpeg", new byte[1024]);
+
+        mockMvc.perform(multipart("/api/v1/files")
+                        .file(file)
+                        .param("folder", "avatars")
+                        .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
     }
 }

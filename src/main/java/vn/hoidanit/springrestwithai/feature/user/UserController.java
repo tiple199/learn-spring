@@ -2,10 +2,17 @@ package vn.hoidanit.springrestwithai.feature.user;
 
 import jakarta.validation.Valid;
 
-import org.springframework.data.domain.Page;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import vn.hoidanit.springrestwithai.dto.ApiResponse;
 import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
@@ -25,17 +32,17 @@ public class UserController {
         this.userService = userService;
     }
 
-
     @GetMapping
-    public ResponseEntity<ApiResponse<ResultPaginationDTO>> getAll(Pageable pageable) {
+    public ResponseEntity<ApiResponse<ResultPaginationDTO>> getAll(
+            @ParameterObject Pageable pageable) {
         ResultPaginationDTO result = userService.getAll(pageable);
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách người dùng thành công", result));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable Long id) {
-        UserResponse user = this.userService.getById(id);
-        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin người dùng thành công", user));
+        UserResponse response = userService.getById(id);
+        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin người dùng thành công", response));
     }
 
     @PostMapping
@@ -48,15 +55,15 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<ApiResponse<UserResponse>> update(@Valid @RequestBody UpdateUserRequest request) {
-        UserResponse updatedUser = this.userService.update(request);
-        return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin người dùng thành công", updatedUser));
+    public ResponseEntity<ApiResponse<UserResponse>> update(
+            @Valid @RequestBody UpdateUserRequest request) {
+        UserResponse response = userService.update(request);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin người dùng thành công", response));
     }
-    
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
-        this.userService.delete(id);
+        userService.delete(id);
         return ResponseEntity.ok(ApiResponse.success("Xóa người dùng thành công", null));
     }
 }

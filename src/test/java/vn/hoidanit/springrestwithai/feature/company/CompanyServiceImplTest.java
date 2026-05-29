@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.exception.DuplicateResourceException;
 import vn.hoidanit.springrestwithai.exception.ResourceNotFoundException;
 import vn.hoidanit.springrestwithai.feature.company.dto.CompanyResponse;
@@ -162,11 +163,11 @@ class CompanyServiceImplTest {
 
         when(companyRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
 
-        Page<CompanyResponse> result = companyService.getAll(0, 10);
+        ResultPaginationDTO result = companyService.getAll(PageRequest.of(0, 10));
 
-        assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).name()).isEqualTo("HoiDanIT");
+        assertThat(result.meta().total()).isEqualTo(2);
+        assertThat(result.meta().page()).isEqualTo(1);
+        assertThat(result.result()).hasSize(2);
     }
 
     @Test
@@ -175,10 +176,10 @@ class CompanyServiceImplTest {
         Page<Company> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
         when(companyRepository.findAll(PageRequest.of(0, 10))).thenReturn(emptyPage);
 
-        Page<CompanyResponse> result = companyService.getAll(0, 10);
+        ResultPaginationDTO result = companyService.getAll(PageRequest.of(0, 10));
 
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.result()).isEmpty();
+        assertThat(result.meta().total()).isZero();
     }
 
     // ========== delete ==========
@@ -207,7 +208,7 @@ class CompanyServiceImplTest {
     // ========== helpers ==========
 
     private Company buildCompany(Long id, String name, String description,
-                                  String address, String logo) {
+            String address, String logo) {
         Company c = new Company();
         c.setId(id);
         c.setName(name);

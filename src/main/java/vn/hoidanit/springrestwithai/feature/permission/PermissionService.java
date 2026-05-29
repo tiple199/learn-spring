@@ -1,10 +1,10 @@
 package vn.hoidanit.springrestwithai.feature.permission;
 
-import org.springframework.data.domain.Page;
-
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.feature.permission.dto.CreatePermissionRequest;
 import vn.hoidanit.springrestwithai.feature.permission.dto.PermissionResponse;
 import vn.hoidanit.springrestwithai.feature.permission.dto.UpdatePermissionRequest;
+import org.springframework.data.domain.Pageable;
 
 public interface PermissionService {
 
@@ -14,7 +14,7 @@ public interface PermissionService {
 
     PermissionResponse getById(Long id);
 
-    Page<PermissionResponse> getAll(int page, int size);
+    ResultPaginationDTO getAll(Pageable pageable);
 
     void delete(Long id);
 }

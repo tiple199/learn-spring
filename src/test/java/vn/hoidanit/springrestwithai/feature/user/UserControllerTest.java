@@ -2,6 +2,7 @@ package vn.hoidanit.springrestwithai.feature.user;
 
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import vn.hoidanit.springrestwithai.common.TestDataFactory;
 import vn.hoidanit.springrestwithai.feature.company.Company;
 import vn.hoidanit.springrestwithai.feature.company.CompanyRepository;
 import vn.hoidanit.springrestwithai.feature.role.Role;
@@ -23,7 +25,6 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,10 +53,20 @@ class UserControllerTest {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private TestDataFactory testDataFactory;
+
+    @BeforeEach
+    void setUp() {
+        // Seed permissions cho tất cả User endpoints
+        testDataFactory.seedPermissions("USERS", "/api/v1/users", "GET", "POST", "PUT", "DELETE");
+        testDataFactory.seedPermissions("USERS", "/api/v1/users/**", "GET", "DELETE");
+    }
+
     @AfterEach
     void cleanup() {
         userRepository.deleteAll();
-        roleRepository.deleteAll();
+        testDataFactory.cleanup();
         companyRepository.deleteAll();
     }
 
@@ -69,7 +80,7 @@ class UserControllerTest {
                 25, "Hanoi", GenderEnum.MALE, null, null);
 
         mockMvc.perform(post("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -91,7 +102,7 @@ class UserControllerTest {
                 company.getId(), List.of(role.getId()));
 
         mockMvc.perform(post("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -108,7 +119,7 @@ class UserControllerTest {
                 25, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -123,13 +134,13 @@ class UserControllerTest {
                 25, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -149,6 +160,20 @@ class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("POST /users: no permission → 403")
+    void createUser_noPermission_returns403() throws Exception {
+        CreateUserRequest request = new CreateUserRequest(
+                "Nguyen Van A", "a@example.com", "password123",
+                25, "Hanoi", GenderEnum.MALE, null, null);
+
+        mockMvc.perform(post("/api/v1/users")
+                .with(testDataFactory.jwtWithoutPermission())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
     // ========== GET /api/v1/users/{id} ==========
 
     @Test
@@ -157,7 +182,7 @@ class UserControllerTest {
         User saved = saveUser("Nguyen Van A", "a@test.com");
 
         mockMvc.perform(get("/api/v1/users/" + saved.getId())
-                .with(jwt()))
+                .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
                 .andExpect(jsonPath("$.data.email", is("a@test.com")));
@@ -167,7 +192,7 @@ class UserControllerTest {
     @DisplayName("GET /users/{id}: not found → 404")
     void getUserById_notFound_returns404() throws Exception {
         mockMvc.perform(get("/api/v1/users/9999")
-                .with(jwt()))
+                .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
     }
@@ -179,6 +204,16 @@ class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /users/{id}: no permission → 403")
+    void getUserById_noPermission_returns403() throws Exception {
+        User saved = saveUser("Nguyen Van A", "a@test.com");
+
+        mockMvc.perform(get("/api/v1/users/" + saved.getId())
+                .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
+    }
+
     // ========== GET /api/v1/users ==========
 
     @Test
@@ -188,7 +223,7 @@ class UserControllerTest {
         saveUser("User B", "b@test.com");
 
         mockMvc.perform(get("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .param("page", "1")
                 .param("size", "10"))
                 .andExpect(status().isOk())
@@ -206,6 +241,14 @@ class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /users: no permission → 403")
+    void getAllUsers_noPermission_returns403() throws Exception {
+        mockMvc.perform(get("/api/v1/users")
+                .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
+    }
+
     // ========== PUT /api/v1/users ==========
 
     @Test
@@ -218,7 +261,7 @@ class UserControllerTest {
                 30, "HCM", GenderEnum.FEMALE, null, null);
 
         mockMvc.perform(put("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -234,7 +277,7 @@ class UserControllerTest {
                 9999L, "Name", "e@test.com", null, null, null, null, null);
 
         mockMvc.perform(put("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -250,11 +293,27 @@ class UserControllerTest {
                 saved.getId(), "Name", "", null, null, null, null, null);
 
         mockMvc.perform(put("/api/v1/users")
-                .with(jwt())
+                .with(testDataFactory.jwtWithPermission())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode", is(400)));
+    }
+
+    @Test
+    @DisplayName("PUT /users: no permission → 403")
+    void updateUser_noPermission_returns403() throws Exception {
+        User saved = saveUser("Name", "valid@test.com");
+
+        UpdateUserRequest request = new UpdateUserRequest(
+                saved.getId(), "New Name", "new@test.com",
+                30, null, null, null, null);
+
+        mockMvc.perform(put("/api/v1/users")
+                .with(testDataFactory.jwtWithoutPermission())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     // ========== DELETE /api/v1/users/{id} ==========
@@ -265,7 +324,7 @@ class UserControllerTest {
         User saved = saveUser("To Delete", "delete@test.com");
 
         mockMvc.perform(delete("/api/v1/users/" + saved.getId())
-                .with(jwt()))
+                .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)));
     }
@@ -274,7 +333,7 @@ class UserControllerTest {
     @DisplayName("DELETE /users/{id}: not found → 404")
     void deleteUser_notFound_returns404() throws Exception {
         mockMvc.perform(delete("/api/v1/users/9999")
-                .with(jwt()))
+                .with(testDataFactory.jwtWithPermission()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
     }
@@ -284,6 +343,16 @@ class UserControllerTest {
     void deleteUser_noAuth_returns401() throws Exception {
         mockMvc.perform(delete("/api/v1/users/1"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("DELETE /users/{id}: no permission → 403")
+    void deleteUser_noPermission_returns403() throws Exception {
+        User saved = saveUser("To Delete", "delete@test.com");
+
+        mockMvc.perform(delete("/api/v1/users/" + saved.getId())
+                .with(testDataFactory.jwtWithoutPermission()))
+                .andExpect(status().isForbidden());
     }
 
     // ========== HELPERS ==========

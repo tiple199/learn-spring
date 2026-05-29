@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.exception.DuplicateResourceException;
 import vn.hoidanit.springrestwithai.exception.ResourceNotFoundException;
 import vn.hoidanit.springrestwithai.feature.permission.dto.CreatePermissionRequest;
@@ -161,11 +162,11 @@ class PermissionServiceImplTest {
 
         when(permissionRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
 
-        Page<PermissionResponse> result = permissionService.getAll(0, 10);
+        ResultPaginationDTO result = permissionService.getAll(PageRequest.of(0, 10));
 
-        assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).name()).isEqualTo("CREATE_USER");
+        assertThat(result.meta().total()).isEqualTo(2);
+        assertThat(result.meta().page()).isEqualTo(1);
+        assertThat(result.result()).hasSize(2);
     }
 
     @Test
@@ -174,10 +175,10 @@ class PermissionServiceImplTest {
         Page<Permission> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
         when(permissionRepository.findAll(PageRequest.of(0, 10))).thenReturn(emptyPage);
 
-        Page<PermissionResponse> result = permissionService.getAll(0, 10);
+        ResultPaginationDTO result = permissionService.getAll(PageRequest.of(0, 10));
 
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.result()).isEmpty();
+        assertThat(result.meta().total()).isZero();
     }
 
     // ========== delete ==========

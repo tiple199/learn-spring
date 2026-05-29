@@ -17,8 +17,7 @@ public record UserResponse(
         CompanyInfo company,
         List<RoleInfo> roles,
         Instant createdAt,
-        Instant updatedAt
-) {
+        Instant updatedAt) {
     public record CompanyInfo(Long id, String name) {
     }
 
@@ -45,7 +44,6 @@ public record UserResponse(
                 companyInfo,
                 roleInfos,
                 user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
+                user.getUpdatedAt());
     }
 }

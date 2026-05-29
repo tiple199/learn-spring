@@ -10,5 +10,4 @@ public record UpdateCompanyRequest(
         String address,
         String logo
 ) {
-    
 }

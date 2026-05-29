@@ -40,3 +40,9 @@ app:
             - avatars
             - logos
     seed-data: false
+
+springdoc:
+  swagger-ui:
+    # lưu token vào storage của trình duyệt để tự động thêm vào header Authorization khi gọi API
+    persist-authorization: true
+    enabled: true

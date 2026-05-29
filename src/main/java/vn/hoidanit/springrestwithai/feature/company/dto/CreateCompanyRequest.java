@@ -8,5 +8,4 @@ public record CreateCompanyRequest(
         String address,
         String logo
 ) {
-    
 }

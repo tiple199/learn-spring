@@ -1,7 +1,9 @@
 package vn.hoidanit.springrestwithai.feature.permission;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,9 +69,10 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
-    public Page<PermissionResponse> getAll(int page, int size) {
-        return permissionRepository.findAll(PageRequest.of(page, size))
+    public ResultPaginationDTO getAll(Pageable pageable) {
+        Page<PermissionResponse> pageResult = permissionRepository.findAll(pageable)
                 .map(PermissionResponse::fromEntity);
+        return ResultPaginationDTO.fromPage(pageResult);
     }
 
     @Override

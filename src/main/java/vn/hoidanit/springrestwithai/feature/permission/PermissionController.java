@@ -1,7 +1,6 @@
 package vn.hoidanit.springrestwithai.feature.permission;
 
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,15 +9,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import vn.hoidanit.springrestwithai.dto.ApiResponse;
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.feature.permission.dto.CreatePermissionRequest;
 import vn.hoidanit.springrestwithai.feature.permission.dto.PermissionResponse;
 import vn.hoidanit.springrestwithai.feature.permission.dto.UpdatePermissionRequest;
 
 import java.net.URI;
+
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/v1/permissions")
@@ -31,10 +33,8 @@ public class PermissionController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<PermissionResponse>>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<PermissionResponse> result = permissionService.getAll(page, size);
+    public ResponseEntity<ApiResponse<ResultPaginationDTO>> getAll(@ParameterObject Pageable pageable) {
+        ResultPaginationDTO result = permissionService.getAll(pageable);
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách quyền hạn thành công", result));
     }
 

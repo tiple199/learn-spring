@@ -13,16 +13,15 @@ public record CompanyResponse(
         Instant createdAt,
         Instant updatedAt
 ) {
-    public static CompanyResponse fromEntity(Company company){
+    public static CompanyResponse fromEntity(Company company) {
         return new CompanyResponse(
                 company.getId(),
                 company.getName(),
                 company.getDescription(),
                 company.getAddress(),
                 company.getLogo(),
-                company.getCreateAt(),
-                company.getUpdateAt()
+                company.getCreatedAt(),
+                company.getUpdatedAt()
         );
     }
 }
-
