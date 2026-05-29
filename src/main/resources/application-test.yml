@@ -1,34 +1,38 @@
 spring:
-  application:
-    name: hoidanit-spring-rest-with-ai
-  datasource:
-    url: jdbc:mysql://localhost:3306/hr_management_test?allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: 12345678
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 10MB
+    application:
+        name: hoidanit-spring-rest-with-ai
+    data:
+        web:
+            pageable:
+                one-indexed-parameters: true
+    datasource:
+        url: jdbc:mysql://localhost:3306/hr_management_test?allowPublicKeyRetrieval=true&useSSL=false
+        username: root
+        password: 12345678
+        driver-class-name: com.mysql.cj.jdbc.Driver
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+    servlet:
+        multipart:
+            max-file-size: 5MB
+            max-request-size: 10MB
 jwt:
-  secret: hoidanitjwtsecretkeyHS256hoidanitjwtsecretkeyHS256hoidanitjwt
-  expiration: 86400000
-  refresh-expiration: 604800000
+    secret: hoidanitjwtsecretkeyHS256hoidanitjwtsecretkeyHS256hoidanitjwt
+    expiration: 86400000
+    refresh-expiration: 604800000
 
 app:
-  upload:
-    base-dir: ./uploads-test
-    max-file-size: 5242880
-    allowed-extensions:
-      - jpg
-      - jpeg
-      - png
-      - gif
-      - webp
-    allowed-folders:
-      - avatars
-      - logos
+    upload:
+        base-dir: ./uploads-test
+        max-file-size: 5242880
+        allowed-extensions:
+            - jpg
+            - jpeg
+            - png
+            - gif
+            - webp
+        allowed-folders:
+            - avatars
+            - logos

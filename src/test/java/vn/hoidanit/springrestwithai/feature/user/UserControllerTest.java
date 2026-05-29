@@ -69,9 +69,9 @@ class UserControllerTest {
                 25, "Hanoi", GenderEnum.MALE, null, null);
 
         mockMvc.perform(post("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.statusCode", is(201)))
@@ -91,9 +91,9 @@ class UserControllerTest {
                 company.getId(), List.of(role.getId()));
 
         mockMvc.perform(post("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.statusCode", is(201)))
                 .andExpect(jsonPath("$.data.company.id", is(company.getId().intValue())))
@@ -108,9 +108,9 @@ class UserControllerTest {
                 25, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode", is(400)));
     }
@@ -123,15 +123,15 @@ class UserControllerTest {
                 25, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.statusCode", is(409)));
     }
@@ -144,8 +144,8 @@ class UserControllerTest {
                 25, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -157,7 +157,7 @@ class UserControllerTest {
         User saved = saveUser("Nguyen Van A", "a@test.com");
 
         mockMvc.perform(get("/api/v1/users/" + saved.getId())
-                        .with(jwt()))
+                .with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
                 .andExpect(jsonPath("$.data.email", is("a@test.com")));
@@ -167,7 +167,7 @@ class UserControllerTest {
     @DisplayName("GET /users/{id}: not found → 404")
     void getUserById_notFound_returns404() throws Exception {
         mockMvc.perform(get("/api/v1/users/9999")
-                        .with(jwt()))
+                .with(jwt()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
     }
@@ -188,13 +188,15 @@ class UserControllerTest {
         saveUser("User B", "b@test.com");
 
         mockMvc.perform(get("/api/v1/users")
-                        .with(jwt())
-                        .param("page", "0")
-                        .param("size", "10"))
+                .with(jwt())
+                .param("page", "1")
+                .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
-                .andExpect(jsonPath("$.data.content", notNullValue()))
-                .andExpect(jsonPath("$.data.totalElements", is(2)));
+                .andExpect(jsonPath("$.data.meta.page", is(1)))
+                .andExpect(jsonPath("$.data.meta.pageSize", is(10)))
+                .andExpect(jsonPath("$.data.meta.total", is(2)))
+                .andExpect(jsonPath("$.data.result", notNullValue()));
     }
 
     @Test
@@ -216,9 +218,9 @@ class UserControllerTest {
                 30, "HCM", GenderEnum.FEMALE, null, null);
 
         mockMvc.perform(put("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
                 .andExpect(jsonPath("$.data.name", is("New Name")))
@@ -232,9 +234,9 @@ class UserControllerTest {
                 9999L, "Name", "e@test.com", null, null, null, null, null);
 
         mockMvc.perform(put("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
     }
@@ -248,9 +250,9 @@ class UserControllerTest {
                 saved.getId(), "Name", "", null, null, null, null, null);
 
         mockMvc.perform(put("/api/v1/users")
-                        .with(jwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode", is(400)));
     }
@@ -263,7 +265,7 @@ class UserControllerTest {
         User saved = saveUser("To Delete", "delete@test.com");
 
         mockMvc.perform(delete("/api/v1/users/" + saved.getId())
-                        .with(jwt()))
+                .with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)));
     }
@@ -272,7 +274,7 @@ class UserControllerTest {
     @DisplayName("DELETE /users/{id}: not found → 404")
     void deleteUser_notFound_returns404() throws Exception {
         mockMvc.perform(delete("/api/v1/users/9999")
-                        .with(jwt()))
+                .with(jwt()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode", is(404)));
     }

@@ -1,6 +1,8 @@
 package vn.hoidanit.springrestwithai.feature.user;
 
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
@@ -8,7 +10,7 @@ import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
 
 public interface UserService {
 
-    Page<UserResponse> getAll(int page, int size);
+    ResultPaginationDTO getAll(Pageable pageable);
 
     UserResponse getById(Long id);
 

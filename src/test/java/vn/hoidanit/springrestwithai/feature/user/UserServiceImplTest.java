@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.exception.DuplicateResourceException;
 import vn.hoidanit.springrestwithai.exception.ResourceNotFoundException;
 import vn.hoidanit.springrestwithai.feature.company.Company;
@@ -184,18 +185,19 @@ class UserServiceImplTest {
     // ========== GET ALL ==========
 
     @Test
-    @DisplayName("getAll: returns paged result")
+    @DisplayName("getAll: returns paged result with meta")
     void getAll_returnsPagedResult() {
         List<User> users = List.of(
                 buildUser(1L, "User A", "a@example.com"),
-                buildUser(2L, "User B", "b@example.com")
-        );
+                buildUser(2L, "User B", "b@example.com"));
         Page<User> page = new PageImpl<>(users);
         when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
 
-        Page<UserResponse> result = userService.getAll(0, 10);
+        ResultPaginationDTO result = userService.getAll(PageRequest.of(0, 10));
 
-        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.meta().total()).isEqualTo(2);
+        assertThat(result.meta().page()).isEqualTo(1);
+        assertThat(result.result()).hasSize(2);
     }
 
     // ========== UPDATE ==========

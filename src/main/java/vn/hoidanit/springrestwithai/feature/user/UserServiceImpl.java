@@ -1,11 +1,12 @@
 package vn.hoidanit.springrestwithai.feature.user;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
+
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.exception.DuplicateResourceException;
 import vn.hoidanit.springrestwithai.exception.ResourceNotFoundException;
 import vn.hoidanit.springrestwithai.feature.company.Company;
@@ -21,34 +22,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
     private final CompanyRepository companyRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository,CompanyRepository companyRepository) {
+    public UserServiceImpl(UserRepository userRepository,
+            CompanyRepository companyRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.roleRepository = roleRepository;
         this.companyRepository = companyRepository;
-    }
-
-    @Override
-    public Page<UserResponse> getAll(int page, int size) {
-
-        return this.userRepository.findAll(PageRequest.of(page, size))
-                .map(UserResponse::fromEntity);
-    }
-
-    @Override
-    public UserResponse getById(Long id) {
-        return this.userRepository.findById(id)
-                .map(UserResponse::fromEntity)
-                .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -57,8 +46,10 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(request.email())) {
             throw new DuplicateResourceException("Người dùng", "email", request.email());
         }
-        List<Role> roles = resolveRoles(request.roleIds());
+
         Company company = resolveCompany(request.companyId());
+        List<Role> roles = resolveRoles(request.roleIds());
+
         User user = new User();
         user.setName(request.name());
         user.setEmail(request.email());
@@ -68,38 +59,59 @@ public class UserServiceImpl implements UserService {
         user.setGender(request.gender());
         user.setCompany(company);
         user.setRoles(roles);
-        User savedUser = this.userRepository.save(user);
-        return UserResponse.fromEntity(savedUser);
+
+        User saved = userRepository.save(user);
+        return UserResponse.fromEntity(saved);
     }
 
     @Override
     @Transactional
     public UserResponse update(UpdateUserRequest request) {
-        User user = this.userRepository.findById(request.id())
+        User user = userRepository.findById(request.id())
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", request.id()));
-        if(userRepository.existsByEmailAndIdNot(request.email(), request.id())){
+
+        if (userRepository.existsByEmailAndIdNot(request.email(), request.id())) {
             throw new DuplicateResourceException("Người dùng", "email", request.email());
         }
-        List<Role> roles = resolveRoles(request.roleIds());
+
         Company company = resolveCompany(request.companyId());
-        user.setId(request.id());
-        user.setEmail(request.email());
+        List<Role> roles = resolveRoles(request.roleIds());
+
         user.setName(request.name());
+        user.setEmail(request.email());
         user.setAge(request.age());
         user.setAddress(request.address());
+        user.setGender(request.gender());
         user.setCompany(company);
         user.setRoles(roles);
-        user.setGender(request.gender());
-        User savedUser = this.userRepository.save(user);
-        return UserResponse.fromEntity((savedUser));
+
+        User saved = userRepository.save(user);
+        return UserResponse.fromEntity(saved);
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public UserResponse getById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        return UserResponse.fromEntity(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResultPaginationDTO getAll(Pageable pageable) {
+        Page<UserResponse> pageResult = userRepository.findAll(pageable)
+                .map(UserResponse::fromEntity);
+        return ResultPaginationDTO.fromPage(pageResult);
+    }
+
+    @Override
+    @Transactional
     public void delete(Long id) {
-        if(!userRepository.existsById(id)){
+        if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Người dùng", "id", id);
         }
-        this.userRepository.deleteById(id);
+        userRepository.deleteById(id);
     }
 
     private Company resolveCompany(Long companyId) {
@@ -110,16 +122,16 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Công ty", "id", companyId));
     }
 
-    private List<Role> resolveRoles(List<Long> roleIds){
-        if(roleIds == null || roleIds.isEmpty()){
+    private List<Role> resolveRoles(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<Long> uniqueIds = roleIds.stream().distinct().toList();
-        List<Role> roles = roleRepository.findAllById(uniqueIds);
+        List<Role> found = roleRepository.findAllById(uniqueIds);
 
-        if(roles.size() != uniqueIds.size()){
-            Set<Long> foundIds = roles.stream()
+        if (found.size() != uniqueIds.size()) {
+            Set<Long> foundIds = found.stream()
                     .map(Role::getId)
                     .collect(Collectors.toSet());
             Long missingId = uniqueIds.stream()
@@ -129,8 +141,6 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("Vai trò", "id", missingId);
         }
 
-        return roles;
+        return found;
     }
-
-
 }

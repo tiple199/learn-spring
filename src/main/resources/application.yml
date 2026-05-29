@@ -1,6 +1,10 @@
 spring:
     application:
         name: hoidanit-spring-rest-with-ai
+    data:
+        web:
+            pageable:
+                one-indexed-parameters: true
     datasource:
         url: jdbc:mysql://localhost:3306/hr_management?allowPublicKeyRetrieval=true&useSSL=false
         username: root

@@ -1,11 +1,14 @@
 package vn.hoidanit.springrestwithai.feature.user;
 
 import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import vn.hoidanit.springrestwithai.dto.ApiResponse;
+import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
@@ -24,12 +27,9 @@ public class UserController {
 
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Page<UserResponse> users = this.userService.getAll(page, size);
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách người dùng thành công", users));
+    public ResponseEntity<ApiResponse<ResultPaginationDTO>> getAll(Pageable pageable) {
+        ResultPaginationDTO result = userService.getAll(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách người dùng thành công", result));
     }
 
     @GetMapping("/{id}")
