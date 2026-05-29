@@ -2,6 +2,7 @@ package vn.hoidanit.springrestwithai.feature.user;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import vn.hoidanit.springrestwithai.feature.role.Role;
 import vn.hoidanit.springrestwithai.feature.role.RoleRepository;
 import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
+import vn.hoidanit.springrestwithai.feature.user.dto.UserFilterRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
 
 import java.util.ArrayList;
@@ -59,6 +61,7 @@ public class UserServiceImpl implements UserService {
         user.setGender(request.gender());
         user.setCompany(company);
         user.setRoles(roles);
+        user.setAvatar(request.avatar());
 
         User saved = userRepository.save(user);
         return UserResponse.fromEntity(saved);
@@ -84,6 +87,7 @@ public class UserServiceImpl implements UserService {
         user.setGender(request.gender());
         user.setCompany(company);
         user.setRoles(roles);
+        user.setAvatar(request.avatar());
 
         User saved = userRepository.save(user);
         return UserResponse.fromEntity(saved);
@@ -101,6 +105,16 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public ResultPaginationDTO getAll(Pageable pageable) {
         Page<UserResponse> pageResult = userRepository.findAll(pageable)
+                .map(UserResponse::fromEntity);
+        return ResultPaginationDTO.fromPage(pageResult);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResultPaginationDTO filter(UserFilterRequest filter, Pageable pageable) {
+        PredicateSpecification<User> spec = UserSpecification.build(filter);
+        Page<UserResponse> pageResult = userRepository.findBy(spec,
+                q -> q.page(pageable)) // đổi tượng 2 là truyền kiểu function nó giúp lấy ra theo kiểu pageable có thể q.first() hoặc q.list() hoặc q.count() tùy mục đích
                 .map(UserResponse::fromEntity);
         return ResultPaginationDTO.fromPage(pageResult);
     }

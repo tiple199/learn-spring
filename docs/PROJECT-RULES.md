@@ -823,7 +823,36 @@ public class PaymentServiceImpl implements PaymentService {
 
 ---
 
-## 17. Documentation Requirements
+## 17. Dynamic Filter — JPA Specification
+
+> Decision & code examples: `docs/decisions/004-filter-strategy.md`
+
+### File structure trong feature package
+
+```
+feature/{name}/
+├── {Name}Controller.java
+├── {Name}Service.java              # Interface
+├── {Name}ServiceImpl.java
+├── {Name}Repository.java           # extends JpaSpecificationExecutor<T>
+├── {Name}.java                     # Entity
+├── {Name}Specification.java        # PredicateSpecification builder
+└── dto/
+    ├── {Name}FilterRequest.java    # Record — chỉ chứa filter fields
+    ├── {Name}Response.java
+    └── ...
+```
+
+### Rules
+- Filter request dùng **record** — chỉ chứa filter fields, pagination do `Pageable` xử lý
+- Controller nhận filter trực tiếp (không cần `@ModelAttribute`) — Spring tự bind query params vào record
+- Repository extends thêm `JpaSpecificationExecutor<T>`
+- Spring Data JPA 4.0: dùng `PredicateSpecification<T>` (không dùng `Specification<T>` cũ)
+- Service trả về `ResultPaginationDTO` (không trả `Page<T>` trực tiếp) — bọc trong `ApiResponse` như mọi endpoint khác
+
+---
+
+## 18. Documentation Requirements
 
 | When | Action |
 |------|--------|

@@ -23,6 +23,8 @@ import vn.hoidanit.springrestwithai.util.constant.GenderEnum;
 
 import jakarta.servlet.http.Cookie;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -59,10 +61,6 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Seed RBAC permissions cho /me và /logout (không nằm trong whitelist)
-        testDataFactory.seedPermissions("AUTH", "/api/v1/auth/me", "GET");
-        testDataFactory.seedPermissions("AUTH", "/api/v1/auth/logout", "POST");
-
         User user = new User();
         user.setEmail(SEED_EMAIL);
         user.setName("Test User");
@@ -225,10 +223,8 @@ class AuthControllerTest {
         String setCookie = loginResult.getResponse().getHeader("Set-Cookie");
         String refreshToken = extractCookieValue(setCookie, "refresh_token");
 
-        // Logout dùng mock JWT (có permission) + refresh cookie
-        // Real JWT từ login không có ROLE_TEST_ROLE nên sẽ bị 403
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .with(testDataFactory.jwtWithPermission(SEED_EMAIL))
+                        .with(jwt().jwt(j -> j.subject(SEED_EMAIL)))
                         .cookie(new Cookie("refresh_token", refreshToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
@@ -239,20 +235,29 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /auth/logout - 200: graceful without cookie")
-    void logout_withoutCookie_returns200() throws Exception {
+    @DisplayName("POST /auth/logout - 200: authenticated request clears cookie even without refresh cookie")
+    void logout_withJwtWithoutCookie_returns200() throws Exception {
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .with(testDataFactory.jwtWithPermission()))
+                        .with(jwt().jwt(j -> j.subject(SEED_EMAIL))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)));
     }
 
     @Test
-    @DisplayName("POST /auth/logout - 403: no permission returns forbidden")
-    void logout_noPermission_returns403() throws Exception {
+    @DisplayName("POST /auth/logout - 401: no token")
+    void logout_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.statusCode", is(401)));
+    }
+
+    @Test
+    @DisplayName("POST /auth/logout - 200: authenticated request bypasses permission check")
+    void logout_authenticatedWithoutPermission_returns200() throws Exception {
         mockMvc.perform(post("/api/v1/auth/logout")
                         .with(testDataFactory.jwtWithoutPermission()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode", is(200)));
     }
 
     // ========== GET /api/v1/auth/me ==========
@@ -261,7 +266,7 @@ class AuthControllerTest {
     @DisplayName("GET /auth/me - 200: returns user data with JWT")
     void getMe_withValidJwt_returns200() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me")
-                        .with(testDataFactory.jwtWithPermission(SEED_EMAIL)))
+                        .with(jwt().jwt(j -> j.subject(SEED_EMAIL))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
                 .andExpect(jsonPath("$.data.email", is(SEED_EMAIL)))
@@ -276,11 +281,15 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("GET /auth/me - 403: no permission returns forbidden")
-    void getMe_noPermission_returns403() throws Exception {
+    @DisplayName("GET /auth/me - 200: authenticated request bypasses permission check")
+    void getMe_authenticatedWithoutPermission_returns200() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me")
-                        .with(testDataFactory.jwtWithoutPermission()))
-                .andExpect(status().isForbidden());
+                        .with(jwt().jwt(j -> j
+                                .subject(SEED_EMAIL)
+                                .claim("roles", List.of()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statusCode", is(200)))
+                .andExpect(jsonPath("$.data.email", is(SEED_EMAIL)));
     }
 
     // ========== helpers ==========

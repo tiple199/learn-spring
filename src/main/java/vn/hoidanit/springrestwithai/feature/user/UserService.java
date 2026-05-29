@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import vn.hoidanit.springrestwithai.dto.ResultPaginationDTO;
 import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
+import vn.hoidanit.springrestwithai.feature.user.dto.UserFilterRequest;
 import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
 
 public interface UserService {
@@ -16,6 +17,8 @@ public interface UserService {
     UserResponse getById(Long id);
 
     ResultPaginationDTO getAll(Pageable pageable);
+
+    ResultPaginationDTO filter(UserFilterRequest filter, Pageable pageable);
 
     void delete(Long id);
 }

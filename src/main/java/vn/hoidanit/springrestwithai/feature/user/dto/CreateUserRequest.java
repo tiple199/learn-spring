@@ -22,6 +22,8 @@ public record CreateUserRequest(
 
         GenderEnum gender,
 
+        String avatar,
+
         Long companyId,
 
         List<Long> roleIds) {

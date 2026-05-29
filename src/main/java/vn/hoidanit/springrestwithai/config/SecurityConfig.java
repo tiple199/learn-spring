@@ -1,5 +1,9 @@
 package vn.hoidanit.springrestwithai.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -15,8 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import vn.hoidanit.springrestwithai.dto.ApiResponse;
 import vn.hoidanit.springrestwithai.security.PermissionAuthorizationManager;
@@ -30,6 +35,7 @@ public class SecurityConfig {
 
     public SecurityConfig(PermissionAuthorizationManager permissionAuthorizationManager) {
         this.permissionAuthorizationManager = permissionAuthorizationManager;
+
     }
 
     private static final String[] WHITELIST = {
@@ -43,13 +49,39 @@ public class SecurityConfig {
     };
 
     @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000",
+                "http://127.0.0.1:3000", "http://localhost:4173", "http://localhost:5173",
+                "https://yourdomain.com"));
+
+        configuration.setAllowedMethods(
+                Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+        configuration.setAllowedHeaders(
+                Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITELIST).permitAll()
-                        .anyRequest().access(permissionAuthorizationManager))                        
+                        .requestMatchers("/api/v1/auth/me").authenticated()
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
+                        .requestMatchers("/api/v1/dashboard").authenticated()
+                        .anyRequest().access(permissionAuthorizationManager))
+
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
                 }))
                 .exceptionHandling(ex -> ex

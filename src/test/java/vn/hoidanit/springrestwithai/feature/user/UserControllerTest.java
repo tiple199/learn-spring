@@ -77,7 +77,7 @@ class UserControllerTest {
     void createUser_validRequest_returns201() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "a@example.com", "password123",
-                25, "Hanoi", GenderEnum.MALE, null, null);
+                25, "Hanoi", GenderEnum.MALE, "/avatars/a.png", null, null);
 
         mockMvc.perform(post("/api/v1/users")
                 .with(testDataFactory.jwtWithPermission())
@@ -87,6 +87,7 @@ class UserControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.statusCode", is(201)))
                 .andExpect(jsonPath("$.data.email", is("a@example.com")))
+                .andExpect(jsonPath("$.data.avatar", is("/avatars/a.png")))
                 .andExpect(jsonPath("$.data.id", notNullValue()));
     }
 
@@ -98,7 +99,7 @@ class UserControllerTest {
 
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van B", "b@example.com", "password123",
-                30, "HCM", GenderEnum.FEMALE,
+                30, "HCM", GenderEnum.FEMALE, "/avatars/b.png",
                 company.getId(), List.of(role.getId()));
 
         mockMvc.perform(post("/api/v1/users")
@@ -107,6 +108,7 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.statusCode", is(201)))
+                .andExpect(jsonPath("$.data.avatar", is("/avatars/b.png")))
                 .andExpect(jsonPath("$.data.company.id", is(company.getId().intValue())))
                 .andExpect(jsonPath("$.data.roles[0].id", is(role.getId().intValue())));
     }
@@ -116,7 +118,7 @@ class UserControllerTest {
     void createUser_missingName_returns400() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
                 "", "c@example.com", "password123",
-                25, null, null, null, null);
+                25, null, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
                 .with(testDataFactory.jwtWithPermission())
@@ -131,7 +133,7 @@ class UserControllerTest {
     void createUser_duplicateEmail_returns409() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "dup@example.com", "password123",
-                25, null, null, null, null);
+                25, null, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
                 .with(testDataFactory.jwtWithPermission())
@@ -152,7 +154,7 @@ class UserControllerTest {
     void createUser_noAuth_returns401() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "a@example.com", "password123",
-                25, null, null, null, null);
+                25, null, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -165,7 +167,7 @@ class UserControllerTest {
     void createUser_noPermission_returns403() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "a@example.com", "password123",
-                25, "Hanoi", GenderEnum.MALE, null, null);
+                25, "Hanoi", GenderEnum.MALE, null, null, null);
 
         mockMvc.perform(post("/api/v1/users")
                 .with(testDataFactory.jwtWithoutPermission())
@@ -258,7 +260,7 @@ class UserControllerTest {
 
         UpdateUserRequest request = new UpdateUserRequest(
                 saved.getId(), "New Name", "new@test.com",
-                30, "HCM", GenderEnum.FEMALE, null, null);
+                30, "HCM", GenderEnum.FEMALE, "/avatars/new.png", null, null);
 
         mockMvc.perform(put("/api/v1/users")
                 .with(testDataFactory.jwtWithPermission())
@@ -267,14 +269,15 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusCode", is(200)))
                 .andExpect(jsonPath("$.data.name", is("New Name")))
-                .andExpect(jsonPath("$.data.email", is("new@test.com")));
+                .andExpect(jsonPath("$.data.email", is("new@test.com")))
+                .andExpect(jsonPath("$.data.avatar", is("/avatars/new.png")));
     }
 
     @Test
     @DisplayName("PUT /users: user not found → 404")
     void updateUser_notFound_returns404() throws Exception {
         UpdateUserRequest request = new UpdateUserRequest(
-                9999L, "Name", "e@test.com", null, null, null, null, null);
+                9999L, "Name", "e@test.com", null, null, null, null, null, null);
 
         mockMvc.perform(put("/api/v1/users")
                 .with(testDataFactory.jwtWithPermission())
@@ -290,7 +293,7 @@ class UserControllerTest {
         User saved = saveUser("Name", "valid@test.com");
 
         UpdateUserRequest request = new UpdateUserRequest(
-                saved.getId(), "Name", "", null, null, null, null, null);
+                saved.getId(), "Name", "", null, null, null, null, null, null);
 
         mockMvc.perform(put("/api/v1/users")
                 .with(testDataFactory.jwtWithPermission())
@@ -307,7 +310,7 @@ class UserControllerTest {
 
         UpdateUserRequest request = new UpdateUserRequest(
                 saved.getId(), "New Name", "new@test.com",
-                30, null, null, null, null);
+                30, null, null, null, null, null);
 
         mockMvc.perform(put("/api/v1/users")
                 .with(testDataFactory.jwtWithoutPermission())

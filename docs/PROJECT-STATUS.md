@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-03-02 | By: @hoidanit | Session: #2
+> Last updated: 2026-03-02 | By: @hoidanit | Session: #3
 >
 > AI: update this file at the end of every session when asked.
 > Follow this exact format. Keep it concise — under 80 lines.
@@ -31,6 +31,10 @@
 - ✅ **[2026-03-02]** Role unit tests — 14 tests
 - ✅ **[2026-03-02]** Role integration tests — 13 tests (requires MySQL)
 - ✅ **[2026-03-02]** Role CONTEXT.md
+- ✅ **[2026-03-02]** User CRUD refactor — entity (ManyToOne Company, ManyToMany Role), DTOs (records), service, controller (pagination)
+- ✅ **[2026-03-02]** User unit tests — 13 tests
+- ✅ **[2026-03-02]** User integration tests — 16 tests (requires MySQL)
+- ✅ **[2026-03-02]** User CONTEXT.md
 
 ## In Progress
 _Nothing._
@@ -46,10 +50,8 @@ _Nothing._
   `org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc`.
 - ⚠️ Integration tests require a live MySQL at `localhost:3306/hr_management` — CI must
   provision a MySQL container. H2 is banned per PROJECT-RULES.md.
-- ⚠️ User CRUD (`/users`) currently returns raw entity (no DTOs). Needs proper refactor in Phase 3.
-
 ## Next Tasks
-1. **[P1]** Refactor User entity — add ManyToOne Company + ManyToMany Role + test + CONTEXT.md
+1. **[P1]** Auth endpoints — POST /auth/login, POST /auth/register, GET /auth/me (Phase 4)
 
 ## Milestones
 
@@ -68,7 +70,7 @@ _Nothing._
 - [x] Role CRUD + ManyToMany Permission + test + CONTEXT.md
 
 ### Phase 3 — User (depends on Role + Company)
-- [ ] User CRUD + ManyToOne Company + ManyToMany Role + test + CONTEXT.md
+- [x] User CRUD + ManyToOne Company + ManyToMany Role + test + CONTEXT.md
 
 ### Phase 4 — Authentication
 - [ ] CustomUserDetailsService

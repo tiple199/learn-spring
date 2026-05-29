@@ -537,7 +537,7 @@ List all companies with pagination.
 
 ---
 
-## 4. Roles
+## 4. Roles ✅ implemented
 
 ### GET /roles 🔒
 
@@ -790,6 +790,28 @@ List all permissions with pagination.
 
 ---
 
+## 7. Dashboard
+
+### GET /dashboard 🔒
+
+Get summary counts for the admin dashboard.
+
+**Success Response (200):**
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "totalUsers": 50,
+    "totalCompanies": 15,
+    "totalRoles": 5,
+    "totalPermissions": 20
+  },
+  "message": "Lấy thông tin dashboard thành công"
+}
+```
+
+---
+
 ## Error Response Format
 
 All errors follow this structure:
@@ -914,3 +936,4 @@ Upload a single file to the server. The returned `fileName` is then used to upda
 | PUT | /permissions | 🔒 | Update permission |
 | DELETE | /permissions/{id} | 🔒 | Delete permission |
 | POST | /files | 🔒 | Upload file (avatar / logo) |
+| GET | /dashboard | 🔒 | Dashboard summary counts |

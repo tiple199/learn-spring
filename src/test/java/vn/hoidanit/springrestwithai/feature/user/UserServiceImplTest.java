@@ -61,7 +61,7 @@ class UserServiceImplTest {
     void create_validRequestNoCompanyNoRoles_returnsUserResponse() {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "a@example.com", "password123",
-                25, "Hanoi", GenderEnum.MALE, null, null);
+                25, "Hanoi", GenderEnum.MALE, "/avatars/a.png", null, null);
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(passwordEncoder.encode(request.password())).thenReturn("encoded");
@@ -75,6 +75,7 @@ class UserServiceImplTest {
 
         assertThat(response.email()).isEqualTo("a@example.com");
         assertThat(response.name()).isEqualTo("Nguyen Van A");
+        assertThat(response.avatar()).isEqualTo("/avatars/a.png");
         assertThat(response.company()).isNull();
         assertThat(response.roles()).isEmpty();
         verify(userRepository).save(any(User.class));
@@ -88,7 +89,7 @@ class UserServiceImplTest {
 
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van B", "b@example.com", "password123",
-                30, "HCM", GenderEnum.FEMALE, 10L, List.of(20L));
+                30, "HCM", GenderEnum.FEMALE, "/avatars/b.png", 10L, List.of(20L));
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(companyRepository.findById(10L)).thenReturn(Optional.of(company));
@@ -102,6 +103,7 @@ class UserServiceImplTest {
 
         UserResponse response = userService.create(request);
 
+        assertThat(response.avatar()).isEqualTo("/avatars/b.png");
         assertThat(response.company()).isNotNull();
         assertThat(response.company().id()).isEqualTo(10L);
         assertThat(response.roles()).hasSize(1);
@@ -113,7 +115,7 @@ class UserServiceImplTest {
     void create_emailAlreadyExists_throwsDuplicateResourceException() {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van A", "a@example.com", "password123",
-                25, null, null, null, null);
+                25, null, null, null, null, null);
 
         when(userRepository.existsByEmail(request.email())).thenReturn(true);
 
@@ -129,7 +131,7 @@ class UserServiceImplTest {
     void create_companyNotFound_throwsResourceNotFoundException() {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van C", "c@example.com", "password123",
-                25, null, null, 99L, null);
+                25, null, null, null, 99L, null);
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(companyRepository.findById(99L)).thenReturn(Optional.empty());
@@ -146,7 +148,7 @@ class UserServiceImplTest {
     void create_roleNotFound_throwsResourceNotFoundException() {
         CreateUserRequest request = new CreateUserRequest(
                 "Nguyen Van D", "d@example.com", "password123",
-                25, null, null, null, List.of(999L));
+                25, null, null, null, null, List.of(999L));
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(roleRepository.findAllById(List.of(999L))).thenReturn(new ArrayList<>());
@@ -208,7 +210,7 @@ class UserServiceImplTest {
         User existing = buildUser(1L, "Old Name", "old@example.com");
         UpdateUserRequest request = new UpdateUserRequest(
                 1L, "New Name", "new@example.com", 30, "HCM",
-                GenderEnum.MALE, null, null);
+                GenderEnum.MALE, "/avatars/new.png", null, null);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.existsByEmailAndIdNot("new@example.com", 1L)).thenReturn(false);
@@ -218,13 +220,14 @@ class UserServiceImplTest {
 
         assertThat(response.name()).isEqualTo("New Name");
         assertThat(response.email()).isEqualTo("new@example.com");
+        assertThat(response.avatar()).isEqualTo("/avatars/new.png");
     }
 
     @Test
     @DisplayName("update: user not found → throws ResourceNotFoundException")
     void update_notFound_throwsResourceNotFoundException() {
         UpdateUserRequest request = new UpdateUserRequest(
-                999L, "Name", "e@example.com", null, null, null, null, null);
+                999L, "Name", "e@example.com", null, null, null, null, null, null);
 
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -238,7 +241,7 @@ class UserServiceImplTest {
     void update_emailTakenByOther_throwsDuplicateResourceException() {
         User existing = buildUser(1L, "User A", "a@example.com");
         UpdateUserRequest request = new UpdateUserRequest(
-                1L, "User A", "taken@example.com", null, null, null, null, null);
+                1L, "User A", "taken@example.com", null, null, null, null, null, null);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.existsByEmailAndIdNot("taken@example.com", 1L)).thenReturn(true);
